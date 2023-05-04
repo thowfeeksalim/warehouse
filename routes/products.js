@@ -1,15 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/Products');
+const productsController = require('../controllers/productsController')
 
-router.get('/', (req, res) => {
-  Product.getAll((error, results) => {
-    if (error) {
-      res.status(500).json({ message: 'Internal server error' });
-    } else {
-      res.json(results);
-    }
-  });
-});
+router.get("/", productsController.getAllProducts);
+router.get("/search", productsController.search);
+router.post("/add", productsController.create);
+
 
 module.exports = router;
