@@ -1,6 +1,6 @@
 const db = require("../models/db");
 
-//!==========================================================getAllProducts=============================================== 
+//!==========================================================getAllProducts===============================================
 
 exports.getAllProducts = (req, res) => {
   db.query("SELECT * FROM products", (err, rows) => {
@@ -13,7 +13,7 @@ exports.getAllProducts = (req, res) => {
   });
 };
 
-//!============================================================getbyproduct_name===========================================
+//!============================================================search==============================================
 
 exports.search = (req, res) => {
   const { search } = req.body;
@@ -29,7 +29,23 @@ exports.search = (req, res) => {
   });
 };
 
-//!============================================================create============================================== 
+//!============================================================/category==============================================
+
+exports.category = (req, res) => {
+  const category = req.query.category;
+  const query = `SELECT * FROM products WHERE product_category = '${category}'`;
+
+  db.query(query, (err, rows) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Internal Server Error");
+    } else {
+      res.json(rows);
+    }
+  });
+};
+
+//!============================================================create==============================================
 
 exports.create = (req, res) => {
   if (!req.body) {
