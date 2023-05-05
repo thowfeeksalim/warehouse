@@ -6,6 +6,8 @@ const db = mysql.createConnection({
   database: 'warehouse_management'
 });
 
+//!             DATABASE CONNECTION
+
 db.connect((err) => {
   if (err) {
     console.log(err);
