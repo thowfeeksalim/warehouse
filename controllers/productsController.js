@@ -115,11 +115,11 @@ WHERE brand_name = '${brand}'`;
   });
 };
 
- //!                         BRAND AND CATEGORY
+//!                         BRAND AND CATEGORY
 
- exports.categorybrand = (req, res) => {
+exports.categorybrand = (req, res) => {
   const brand = req.params.brand;
-  const category = req.params.category
+  const category = req.params.category;
   const query = `
   SELECT 
   p.product_id, 
@@ -146,16 +146,14 @@ WHERE brand_name = '${brand}' AND category_name = '${category}'`;
   });
 };
 
-
-
-
 //!                               ADD NEW PRODUCT
 
 exports.create = (req, res) => {
   if (!req.body) {
     return res.status(400).json({ error: "Missing request body." });
   }
-//?                    check if product is exit or not  
+  
+  //?                    check if product is exit or not
 
   const { product_name, product_quantity, product_brand, product_category } =
     req.body;
@@ -168,7 +166,8 @@ exports.create = (req, res) => {
         console.log(err);
         res.send("Error checking for existing product.");
       } else {
-//?                    if exit just update product_quantity                   
+
+        //?                    if exit just update product_quantity
 
         if (rows.length > 0) {
           const newQuantity = rows[0].product_quantity + product_quantity;
@@ -185,7 +184,8 @@ exports.create = (req, res) => {
             }
           );
         } else {
-//?                   if not exit just added as new product
+
+          //?                   if not exit just added as new product
 
           db.query(
             "INSERT INTO products (product_name, product_quantity, product_brand, product_category) VALUES (?, ?, ?, ?)",
@@ -239,13 +239,12 @@ exports.buy = (req, res) => {
   );
 };
 
-
 //!                                    EDIT
 
-
 exports.edit = (req, res) => {
-  const product_id  = req.params.product_id;
-  const { product_name, product_quantity, product_category, product_brand } = req.body;
+  const product_id = req.params.product_id;
+  const { product_name, product_quantity, product_category, product_brand } =
+    req.body;
   db.query(
     `UPDATE products SET 
       product_name = ?,
@@ -254,13 +253,19 @@ exports.edit = (req, res) => {
       product_brand = ?,
       updated_date = NOW()
     WHERE product_id = ?`,
-    [product_name, product_quantity, product_category, product_brand, product_id] ,
+    [
+      product_name,
+      product_quantity,
+      product_category,
+      product_brand,
+      product_id,
+    ],
     (error, results, fields) => {
       if (error) throw error;
 
       db.query(
-        'SELECT * FROM products WHERE product_id = ?',
-        [product_id ],
+        "SELECT * FROM products WHERE product_id = ?",
+        [product_id],
         (error, results, fields) => {
           if (error) throw error;
 
@@ -270,15 +275,6 @@ exports.edit = (req, res) => {
     }
   );
 };
-
-
-
-
-
-
-
-
-
 
 //!                                 DELETE
 
@@ -300,4 +296,3 @@ exports.delete = (req, res) => {
     }
   );
 };
-
