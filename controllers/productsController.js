@@ -33,18 +33,21 @@ exports.search = (req, res) => {
 
 exports.category = (req, res) => {
   const category = req.params.category;
-  console.log(req.params.category);
-  const query = `SELECT * FROM products WHERE product_category = ${category}`;
+  console.log(req.params);
+  const query = `SELECT * FROM products WHERE product_category = '${category}'`;
 
   db.query(query, (err, rows) => {
     if (err) {
       console.log(err);
       res.status(500).send("Internal Server Error");
-    } else {
+    }
+    else{
+      //console.log(rows);
       res.json(rows);
     }
   });
 };
+
 
 
 //!================================add new product===========================
