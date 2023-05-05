@@ -3,7 +3,21 @@ const db = require("../models/db");
 //!                            GET ALL PRODUCTS
 
 exports.getAllProducts = (req, res) => {
-  db.query("SELECT * FROM products", (err, rows) => {
+  const query = `
+  SELECT 
+  p.product_id, 
+  p.product_quantity,
+  p.product_name,  
+  b.brand_name, 
+  c.category_name,
+   p.created_date, 
+  p.updated_date
+FROM 
+  products p
+  LEFT JOIN brand b ON p.product_brand = b.brand_id
+  LEFT JOIN category c ON p.product_category = c.category_id;
+`;
+  db.query(query, (err, rows) => {
     if (err) {
       console.log(err);
       res.status(500).send("Internal Server Error");
@@ -17,7 +31,20 @@ exports.getAllProducts = (req, res) => {
 
 exports.search = (req, res) => {
   const { search } = req.body;
-  const query = `SELECT * FROM products WHERE product_name LIKE '%${search}%'`;
+  const query = `
+  SELECT 
+  p.product_id, 
+  p.product_quantity, 
+  p.product_name, 
+  b.brand_name, 
+  c.category_name,
+   p.created_date, 
+  p.updated_date
+FROM 
+  products p
+  LEFT JOIN brand b ON p.product_brand = b.brand_id
+  LEFT JOIN category c ON p.product_category = c.category_id
+  WHERE product_name LIKE '%${search}%'`;
 
   db.query(query, (err, rows) => {
     if (err) {
@@ -33,7 +60,49 @@ exports.search = (req, res) => {
 
 exports.category = (req, res) => {
   const category = req.params.category;
-  const query = `SELECT * FROM products WHERE product_category = '${category}'`;
+  const query = `
+  SELECT 
+  p.product_id, 
+  p.product_quantity, 
+  p.product_name, 
+  b.brand_name, 
+  c.category_name,
+   p.created_date, 
+  p.updated_date
+FROM 
+  products p
+  LEFT JOIN brand b ON p.product_brand = b.brand_id
+  LEFT JOIN category c ON p.product_category = c.category_id
+WHERE category_name = '${category}'`;
+  db.query(query, (err, rows) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Internal Server Error");
+    } else {
+      //console.log(rows);
+      res.json(rows);
+    }
+  });
+};
+
+//!                                  BRAND
+
+exports.brand = (req, res) => {
+  const brand = req.params.brand;
+  const query = `
+  SELECT 
+  p.product_id, 
+  p.product_quantity, 
+  p.product_name, 
+  b.brand_name, 
+  c.category_name,
+   p.created_date, 
+  p.updated_date
+FROM 
+  products p
+  LEFT JOIN brand b ON p.product_brand = b.brand_id
+  LEFT JOIN category c ON p.product_category = c.category_id
+WHERE brand_name = '${brand}'`;
 
   db.query(query, (err, rows) => {
     if (err) {
@@ -45,6 +114,13 @@ exports.category = (req, res) => {
     }
   });
 };
+
+                              
+
+
+
+
+
 
 //!                               ADD NEW PRODUCT
 
