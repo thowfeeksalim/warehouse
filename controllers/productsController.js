@@ -1,6 +1,6 @@
 const db = require("../models/db");
 
-//!==========================================================getAllProducts===============================================
+//!==============================getAllProducts=============================
 
 exports.getAllProducts = (req, res) => {
   db.query("SELECT * FROM products", (err, rows) => {
@@ -13,7 +13,7 @@ exports.getAllProducts = (req, res) => {
   });
 };
 
-//!============================================================search==============================================
+//!==============================search====================================
 
 exports.search = (req, res) => {
   const { search } = req.body;
@@ -29,11 +29,12 @@ exports.search = (req, res) => {
   });
 };
 
-//!============================================================/category==============================================
+//!=========================================/category=======================
 
 exports.category = (req, res) => {
-  const category = req.query.category;
-  const query = `SELECT * FROM products WHERE product_category = '${category}'`;
+  const category = req.params.category;
+  console.log(req.params.category);
+  const query = `SELECT * FROM products WHERE product_category = ${category}`;
 
   db.query(query, (err, rows) => {
     if (err) {
@@ -45,7 +46,8 @@ exports.category = (req, res) => {
   });
 };
 
-//!============================================================create==============================================
+
+//!================================add new product===========================
 
 exports.create = (req, res) => {
   if (!req.body) {
