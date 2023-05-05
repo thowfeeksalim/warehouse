@@ -115,9 +115,36 @@ WHERE brand_name = '${brand}'`;
   });
 };
 
-                              
+ //!                         BRAND AND CATEGORY
 
+ exports.categorybrand = (req, res) => {
+  const brand = req.params.brand;
+  const category = req.params.category
+  const query = `
+  SELECT 
+  p.product_id, 
+  p.product_quantity, 
+  p.product_name, 
+  b.brand_name, 
+  c.category_name,
+   p.created_date, 
+  p.updated_date
+FROM 
+  products p
+  LEFT JOIN brand b ON p.product_brand = b.brand_id
+  LEFT JOIN category c ON p.product_category = c.category_id
+WHERE brand_name = '${brand}' AND category_name = '${category}'`;
 
+  db.query(query, (err, rows) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Internal Server Error");
+    } else {
+      //console.log(rows);
+      res.json(rows);
+    }
+  });
+};
 
 
 
@@ -211,6 +238,47 @@ exports.buy = (req, res) => {
     }
   );
 };
+
+
+//!                                    EDIT
+
+
+exports.edit = (req, res) => {
+  const product_id  = req.params.product_id;
+  const { product_name, product_quantity, product_category, product_brand } = req.body;
+  db.query(
+    `UPDATE products SET 
+      product_name = ?,
+      product_quantity = ?,
+      product_category = ?,
+      product_brand = ?,
+      updated_date = NOW()
+    WHERE product_id = ?`,
+    [product_name, product_quantity, product_category, product_brand, product_id] ,
+    (error, results, fields) => {
+      if (error) throw error;
+
+      db.query(
+        'SELECT * FROM products WHERE product_id = ?',
+        [product_id ],
+        (error, results, fields) => {
+          if (error) throw error;
+
+          res.status(200).json(results[0]);
+        }
+      );
+    }
+  );
+};
+
+
+
+
+
+
+
+
+
 
 //!                                 DELETE
 
