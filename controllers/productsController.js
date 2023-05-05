@@ -33,7 +33,6 @@ exports.search = (req, res) => {
 
 exports.category = (req, res) => {
   const category = req.params.category;
-  console.log(req.params);
   const query = `SELECT * FROM products WHERE product_category = '${category}'`;
 
   db.query(query, (err, rows) => {
@@ -71,3 +70,22 @@ exports.create = (req, res) => {
     }
   );
 };
+//!==========================/buy:id=========================================
+exports.buy =(req,res) => {
+  const product_id  = req.params.id;
+  const quantity = req.body.quantity;
+  db.query('SELECT * FROM products WHERE product_id = ?', [product_id ], (err, result) => {
+    if (err) throw err;
+    const product = result[0];
+    if (quantity <= product.product_quantity) {
+      const newQuantity = product.product_quantity - quantity;
+      db.query('UPDATE products SET product_quantity = ? WHERE product_id = ?', [newQuantity, product_id], (err, result) => {
+        if (err) throw err;
+        res.send(`Successfully bought ${quantity} units of ${product.product_name}.`);
+      });
+    } else {
+      res.status(400).send(`Only ${product.product_quantity} units of ${product.product_name} are available.`);
+    }
+  });
+};
+
