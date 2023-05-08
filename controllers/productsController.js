@@ -14,6 +14,20 @@ exports.listcategory = (req, res) => {
   });
 };
 
+//!                            LIST BRAND
+
+exports.listbrand = (req, res) => {
+  const query = `SELECT * FROM brand`;
+  db.query(query, (err, rows) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Internal Server Error");
+    } else {
+      res.json(rows);
+    }
+  });
+};
+
 //!                            LIST PRODUCTS
 
 exports.listproducts = (req, res) => {
@@ -166,52 +180,45 @@ exports.addcategory = (req, res) => {
   if (!req.body) {
     return res.status(400).json({ error: "Missing request body." });
   }
-  
-  //?                    check if product is exit or not
-  
 
-  const { category_name } =
-    req.body;
+  //?                    check if product is exit or not
+
+  const { category_name } = req.body;
 
   db.query(
-    "SELECT * FROM brand WHERE category_name = ?",
+    "SELECT * FROM category WHERE category_name = ?",
     [category_name],
     (err, rows) => {
       if (err) {
         console.log(err);
         res.send("Error checking for existing category.");
       } else {
-          //?                   if not exit just added as new category
+        //?                   if not exit just added as new category
 
-          db.query(
-            "INSERT INTO brand (category_name) VALUES (?,?)",
-            [category_name],
-            (err, rows) => {
-              if (!err) {
-                res.send("category added successfully.");
-              } else {
-                console.log(err);
-                res.send("Error adding category.");
-              }
+        db.query(
+          "INSERT INTO category (category_name) VALUES (?)",
+          [category_name],
+          (err, rows) => {
+            if (!err) {
+              res.send("category added successfully.");
+            } else {
+              console.log(err);
+              res.send("Error adding category.");
             }
-          );
-        }
+          }
+        );
       }
+    }
   );
-}; 
-
-
-
+};
 
 //!                               /ADD BRAND
-
 
 exports.addbrand = (req, res) => {
   if (!req.body) {
     return res.status(400).json({ error: "Missing request body." });
   }
-  const { brand_name, category_id } =
-    req.body;
+  const { brand_name, category_id } = req.body;
 
   db.query(
     "SELECT * FROM brand WHERE brand_name = ? AND  category_id = ?",
@@ -221,27 +228,23 @@ exports.addbrand = (req, res) => {
         console.log(err);
         res.send("Error checking for existing brand.");
       } else {
-          //?                   if not exit just added as new brand
-          db.query(
-            "INSERT INTO brand (brand_name, category_id) VALUES (?,?)",
-            [brand_name, category_id],
-            (err, rows) => {
-              if (!err) {
-                res.send("brand added successfully.");
-              } else {
-                console.log(err);
-                res.send("Error adding brand.");
-              }
+        //?                   if not exit just added as new brand
+        db.query(
+          "INSERT INTO brand (brand_name, category_id) VALUES (?,?)",
+          [brand_name, category_id],
+          (err, rows) => {
+            if (!err) {
+              res.send("brand added successfully.");
+            } else {
+              console.log(err);
+              res.send("Error adding brand.");
             }
-          );
-        }
+          }
+        );
       }
+    }
   );
-}; 
-
-
-
-
+};
 
 //!                               ADD PRODUCT
 
@@ -249,7 +252,7 @@ exports.addproduct = (req, res) => {
   if (!req.body) {
     return res.status(400).json({ error: "Missing request body." });
   }
-  
+
   //?                    check if product is exit or not
 
   const { product_name, product_quantity, product_brand, product_category } =
@@ -263,7 +266,6 @@ exports.addproduct = (req, res) => {
         console.log(err);
         res.send("Error checking for existing product.");
       } else {
-
         //?                    if exit just update product_quantity
 
         if (rows.length > 0) {
@@ -281,7 +283,6 @@ exports.addproduct = (req, res) => {
             }
           );
         } else {
-
           //?                   if not exit just added as new product
 
           db.query(
@@ -305,54 +306,56 @@ exports.addproduct = (req, res) => {
 //!                                 /BUY:ID
 
 exports.buy = (req, res) => {
-  const product_id = req.params.id;
-  const quantity = req.body.quantity;
-  db.query(
-    "SELECT * FROM products WHERE product_id = ?",
-    [product_id],
-    (err, result) => {
-      if (err) throw err;
-      const product = result[0];
-      if (quantity <= product.product_quantity) {
-        const newQuantity = product.product_quantity - quantity;
-        db.query(
-          "UPDATE products SET product_quantity = ? WHERE product_id = ?",
-          [newQuantity, product_id],
-          (err, result) => {
-            if (err) throw err;
-            res.send(
-              `Successfully bought ${quantity} units of ${product.product_name}.`
-            );
-          }
-        );
-      } else {
-        res
-          .status(400)
-          .send(
-            `Only ${product.product_quantity} units of ${product.product_name} are available.`
+  try {
+    const product_id = req.params.id;
+    const quantity = req.body.quantity;
+    db.query(
+      "SELECT * FROM products WHERE product_id = ?",
+      [product_id],
+      (err, result) => {
+        if (err) throw err;
+        const product = result[0];
+        if (quantity <= product.product_quantity) {
+          const newQuantity = product.product_quantity - quantity;
+          db.query(
+            "UPDATE products SET product_quantity = ? WHERE product_id = ?",
+            [newQuantity, product_id],
+            (err, result) => {
+              if (err) throw err;
+              res.send(
+                `Successfully bought ${quantity} units of ${product.product_name}.`
+              );
+            }
           );
+        } else {
+          res
+            .status(400)
+            .send(
+              `Only ${product.product_quantity} units of ${product.product_name} are available.`
+            );
+        }
       }
-    }
-  );
+    );
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Please enter a valid product",
+      error: error.message,
+    });
+  }
 };
-
 
 //!                            EDIT CATEGORY
 
-
 exports.editcategory = (req, res) => {
   const category_id = req.params.category_id;
-  const { category_name } =
-    req.body;
+  const { category_name } = req.body;
   db.query(
     `UPDATE category SET 
       category_name = ?,
       updated_date = NOW()
     WHERE category_id = ?`,
-    [
-      category_name,
-      category_id,
-    ],
+    [category_name, category_id],
     (error, results, fields) => {
       if (error) throw error;
 
@@ -369,24 +372,17 @@ exports.editcategory = (req, res) => {
   );
 };
 
-
-
 //!                            EDIT BRAND
-
 
 exports.editbrand = (req, res) => {
   const brand_id = req.params.brand_id;
-  const { brand_name } =
-    req.body;
+  const { brand_name } = req.body;
   db.query(
     `UPDATE brand SET 
       brand_name = ?,
       updated_date = NOW()
     WHERE brand_id = ?`,
-    [
-      brand_name,
-      brand_id,
-    ],
+    [brand_name, brand_id],
     (error, results, fields) => {
       if (error) throw error;
 
@@ -403,12 +399,7 @@ exports.editbrand = (req, res) => {
   );
 };
 
-
-
-
-
 //!                            EDIT PRODUCT
-
 
 exports.editproduct = (req, res) => {
   const product_id = req.params.product_id;
@@ -437,7 +428,6 @@ exports.editproduct = (req, res) => {
         [product_id],
         (error, results, fields) => {
           if (error) throw error;
-
           res.status(200).json(results[0]);
         }
       );
@@ -445,9 +435,51 @@ exports.editproduct = (req, res) => {
   );
 };
 
-//!                                 DELETE
+//!                DELETE CATEGORYID
 
-exports.delete = (req, res) => {
+exports.deletecategoryid = (req, res) => {
+  const category_id = req.params.id;
+
+  db.query(
+    "DELETE FROM category WHERE category_id = ?",
+    [category_id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.send("Error deleting category.");
+      } else if (result.affectedRows === 0) {
+        res.status(404).send("category not found.");
+      } else {
+        res.send("category deleted successfully.");
+      }
+    }
+  );
+};
+
+//!                DELETE BRANDID
+
+exports.deletebrandid = (req, res) => {
+  const brand_id = req.params.id;
+
+  db.query(
+    "DELETE FROM brand WHERE brand_id = ?",
+    [brand_id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        res.send("Error deleting brand.");
+      } else if (result.affectedRows === 0) {
+        res.status(404).send("brand not found.");
+      } else {
+        res.send("brand deleted successfully.");
+      }
+    }
+  );
+};
+
+//!                DELETE PRODUCTID
+
+exports.deleteproductid = (req, res) => {
   const product_id = req.params.id;
 
   db.query(
