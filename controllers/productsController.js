@@ -9,9 +9,9 @@ exports.getAllProducts = (req, res) => {
   p.product_quantity,
   p.product_name,  
   b.brand_name, 
-  c.category_name,
-   p.created_date, 
-  p.updated_date
+  p.created_date, 
+  p.updated_date,
+  c.category_name
 FROM 
   products p
   LEFT JOIN brand b ON p.product_brand = b.brand_id
@@ -38,7 +38,7 @@ exports.search = (req, res) => {
   p.product_name, 
   b.brand_name, 
   c.category_name,
-   p.created_date, 
+  p.created_date, 
   p.updated_date
 FROM 
   products p
@@ -127,7 +127,7 @@ exports.categorybrand = (req, res) => {
   p.product_name, 
   b.brand_name, 
   c.category_name,
-   p.created_date, 
+  p.created_date, 
   p.updated_date
 FROM 
   products p
