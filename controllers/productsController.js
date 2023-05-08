@@ -241,6 +241,7 @@ exports.buy = (req, res) => {
 
 //!                                    EDIT
 
+
 exports.edit = (req, res) => {
   const product_id = req.params.product_id;
   const { product_name, product_quantity, product_category, product_brand } =
