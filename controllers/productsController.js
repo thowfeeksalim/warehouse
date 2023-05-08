@@ -1,8 +1,22 @@
 const db = require("../models/db");
 
-//!                            GET ALL PRODUCTS
+//!                            LIST CATEGORY
 
-exports.getAllProducts = (req, res) => {
+exports.listcategory = (req, res) => {
+  const query = `SELECT * FROM category`;
+  db.query(query, (err, rows) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send("Internal Server Error");
+    } else {
+      res.json(rows);
+    }
+  });
+};
+
+//!                            LIST PRODUCTS
+
+exports.listproducts = (req, res) => {
   const query = `
   SELECT 
   p.product_id, 
@@ -322,10 +336,81 @@ exports.buy = (req, res) => {
   );
 };
 
-//!                                    EDIT
+
+//!                            EDIT CATEGORY
 
 
-exports.edit = (req, res) => {
+exports.editcategory = (req, res) => {
+  const category_id = req.params.category_id;
+  const { category_name } =
+    req.body;
+  db.query(
+    `UPDATE category SET 
+      category_name = ?,
+      updated_date = NOW()
+    WHERE category_id = ?`,
+    [
+      category_name,
+      category_id,
+    ],
+    (error, results, fields) => {
+      if (error) throw error;
+
+      db.query(
+        "SELECT * FROM category WHERE category_id = ?",
+        [category_id],
+        (error, results, fields) => {
+          if (error) throw error;
+
+          res.status(200).json(results[0]);
+        }
+      );
+    }
+  );
+};
+
+
+
+//!                            EDIT BRAND
+
+
+exports.editbrand = (req, res) => {
+  const brand_id = req.params.brand_id;
+  const { brand_name } =
+    req.body;
+  db.query(
+    `UPDATE brand SET 
+      brand_name = ?,
+      updated_date = NOW()
+    WHERE brand_id = ?`,
+    [
+      brand_name,
+      brand_id,
+    ],
+    (error, results, fields) => {
+      if (error) throw error;
+
+      db.query(
+        "SELECT * FROM brand WHERE brand_id = ?",
+        [brand_id],
+        (error, results, fields) => {
+          if (error) throw error;
+
+          res.status(200).json(results[0]);
+        }
+      );
+    }
+  );
+};
+
+
+
+
+
+//!                            EDIT PRODUCT
+
+
+exports.editproduct = (req, res) => {
   const product_id = req.params.product_id;
   const { product_name, product_quantity, product_category, product_brand } =
     req.body;

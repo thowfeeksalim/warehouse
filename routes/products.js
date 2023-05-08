@@ -4,7 +4,8 @@ const productsController = require("../controllers/productsController");
 
 //!                CREATE ROUTERS
 
-router.get("/", productsController.getAllProducts);
+router.get("/listproducts", productsController.listproducts);
+router.get("/listcategory", productsController.listcategory);
 router.get("/search", productsController.search);
 router.get("/category/:category", productsController.category);
 router.get("/brand/:brand", productsController.brand);
@@ -15,7 +16,10 @@ router.post("/addbrand", productsController.addbrand);
 router.post("/addproduct", productsController.addproduct);
 router.post("/buy/:id", productsController.buy);
 
-router.put("/edit/:product_id", productsController.edit);
+router.put("/editcategory/:category_id", productsController.editcategory);
+router.put("/editbrand/:brand_id", productsController.editbrand);
+router.put("editproduct/:product_id", productsController.editproduct);
+
 
 router.delete("/:id", productsController.delete);
 
