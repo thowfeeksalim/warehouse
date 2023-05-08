@@ -67,7 +67,7 @@ exports.category = (req, res) => {
   p.product_name, 
   b.brand_name, 
   c.category_name,
-   p.created_date, 
+  p.created_date, 
   p.updated_date
 FROM 
   products p
@@ -96,7 +96,7 @@ exports.brand = (req, res) => {
   p.product_name, 
   b.brand_name, 
   c.category_name,
-   p.created_date, 
+  p.created_date, 
   p.updated_date
 FROM 
   products p
@@ -146,9 +146,92 @@ WHERE brand_name = '${brand}' AND category_name = '${category}'`;
   });
 };
 
-//!                               ADD NEW PRODUCT
+//!                               /ADD CATEGORY
 
-exports.create = (req, res) => {
+exports.addcategory = (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ error: "Missing request body." });
+  }
+  
+  //?                    check if product is exit or not
+  
+
+  const { category_name } =
+    req.body;
+
+  db.query(
+    "SELECT * FROM brand WHERE category_name = ?",
+    [category_name],
+    (err, rows) => {
+      if (err) {
+        console.log(err);
+        res.send("Error checking for existing category.");
+      } else {
+          //?                   if not exit just added as new category
+
+          db.query(
+            "INSERT INTO brand (category_name) VALUES (?,?)",
+            [category_name],
+            (err, rows) => {
+              if (!err) {
+                res.send("category added successfully.");
+              } else {
+                console.log(err);
+                res.send("Error adding category.");
+              }
+            }
+          );
+        }
+      }
+  );
+}; 
+
+
+
+
+//!                               /ADD BRAND
+
+
+exports.addbrand = (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ error: "Missing request body." });
+  }
+  const { brand_name, category_id } =
+    req.body;
+
+  db.query(
+    "SELECT * FROM brand WHERE brand_name = ? AND  category_id = ?",
+    [brand_name, category_id],
+    (err, rows) => {
+      if (err) {
+        console.log(err);
+        res.send("Error checking for existing brand.");
+      } else {
+          //?                   if not exit just added as new brand
+          db.query(
+            "INSERT INTO brand (brand_name, category_id) VALUES (?,?)",
+            [brand_name, category_id],
+            (err, rows) => {
+              if (!err) {
+                res.send("brand added successfully.");
+              } else {
+                console.log(err);
+                res.send("Error adding brand.");
+              }
+            }
+          );
+        }
+      }
+  );
+}; 
+
+
+
+
+
+//!                               ADD PRODUCT
+
+exports.addproduct = (req, res) => {
   if (!req.body) {
     return res.status(400).json({ error: "Missing request body." });
   }
