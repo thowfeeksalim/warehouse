@@ -6,7 +6,6 @@ exports.listcategory = (req, res) => {
   const query = `SELECT * FROM category`;
   db.query(query, (err, rows) => {
     if (err) {
-    
       res.status(500).send("Internal Server Error");
     } else {
       res.json(rows);
@@ -29,7 +28,6 @@ exports.listbrand = (req, res) => {
   `;
   db.query(query, (err, rows) => {
     if (err) {
-    
       res.status(500).send("Internal Server Error");
     } else {
       res.json(rows);
@@ -56,7 +54,6 @@ FROM
 `;
   db.query(query, (err, rows) => {
     if (err) {
-   
       res.status(500).send("Internal Server Error");
     } else {
       res.json(rows);
@@ -85,7 +82,6 @@ exports.search = (req, res) => {
 
   db.query(query, (err, rows) => {
     if (err) {
-    
       res.status(500).send("Internal Server Error");
     } else {
       if (rows.length === 0) {
@@ -117,7 +113,6 @@ FROM
 WHERE category_name = '${category}'`;
   db.query(query, (err, rows) => {
     if (err) {
-  
       res.status(500).send("Internal Server Error");
     } else {
       //console.log(rows);
@@ -147,7 +142,6 @@ WHERE brand_name = '${brand}'`;
 
   db.query(query, (err, rows) => {
     if (err) {
-    
       res.status(500).send("Internal Server Error");
     } else {
       //console.log(rows);
@@ -178,7 +172,6 @@ WHERE brand_name = '${brand}' AND category_name = '${category}'`;
 
   db.query(query, (err, rows) => {
     if (err) {
-   
       res.status(500).send("Internal Server Error");
     } else {
       if (rows.length === 0) {
@@ -212,7 +205,6 @@ exports.addcategory = (req, res) => {
       [category_name],
       (err, rows) => {
         if (err) {
-        
           res.send("Error checking for existing category.");
         } else {
           if (rows.length > 0) {
@@ -227,7 +219,6 @@ exports.addcategory = (req, res) => {
                 if (!err) {
                   res.send("Category added successfully.");
                 } else {
-                
                   res.send("Error adding category.");
                 }
               }
@@ -237,7 +228,6 @@ exports.addcategory = (req, res) => {
       }
     );
   } catch (err) {
-  
     res.status(500).send("Internal server error.");
   }
 };
@@ -264,7 +254,6 @@ exports.addbrand = (req, res) => {
       [brand_name, category_id],
       (err, rows) => {
         if (err) {
-        
           res.send("Error checking for existing brand.");
         } else {
           if (rows.length > 0) {
@@ -288,7 +277,6 @@ exports.addbrand = (req, res) => {
       }
     );
   } catch (err) {
-  
     res.status(500).send("Internal server error.");
   }
 };
@@ -305,28 +293,29 @@ exports.addproduct = (req, res) => {
       req.body;
 
     if (
-      typeof product_name !== "string" ||
-      !/^[a-zA-Z ]+$/.test(product_name)
+      typeof product_quantity !== "number" ||
+      !Number.isInteger(product_quantity)
     ) {
-      res.send("Product name must contain only alphabets and spaces.");
+      res.send("Product quantity must be an integer.");
     }
 
+    // if (typeof product_brand !== "string" ||
+    //   !/^[a-zA-Z ]+$/.test(product_brand))
+    //   {
+    //     res.send("Product brand must be an charactor.");
+    //   }
+
     if (
-      typeof product_quantity !== "number" ||
-      !Number.isInteger(product_quantity) ||
-      typeof product_brand !== "number" ||
-      !Number.isInteger(product_brand) ||
       typeof product_category !== "number" ||
       !Number.isInteger(product_category)
     ) {
-      res.send("Product quantity must be an integer.");
+      res.send("Product category must be an integer.");
     }
     db.query(
       "SELECT * FROM products WHERE product_name = ? AND product_brand = ? AND product_category = ?",
       [product_name, product_brand, product_category],
       (err, rows) => {
         if (err) {
-        
           res.send("Error checking for existing product.");
         } else {
           if (rows.length > 0) {
@@ -336,7 +325,6 @@ exports.addproduct = (req, res) => {
               [newQuantity, rows[0].product_id],
               (err, rows) => {
                 if (err) {
-            
                   res.send("Error updating product quantity.");
                 } else {
                   res.send(
@@ -353,7 +341,7 @@ exports.addproduct = (req, res) => {
                 if (!err) {
                   res.send("Product added successfully.");
                 } else {
-            
+                  console.log(err);
                   res.send("Error adding product.");
                 }
               }
@@ -363,8 +351,7 @@ exports.addproduct = (req, res) => {
       }
     );
   } catch (err) {
-  
-    res.status(400).json({ error: err.message });
+    res.status(400).send("error");
   }
 };
 
@@ -555,7 +542,6 @@ exports.deletecategoryid = (req, res) => {
     [category_id],
     (err, result) => {
       if (err) {
-      
         res.send("Error deleting category.");
       } else if (result.affectedRows === 0) {
         res.status(404).send("category not found.");
@@ -579,7 +565,6 @@ exports.deletebrandid = (req, res) => {
     [brand_id],
     (err, result) => {
       if (err) {
-      
         res.send("Error deleting brand.");
       } else if (result.affectedRows === 0) {
         res.status(404).send("brand not found.");
@@ -603,7 +588,6 @@ exports.deleteproductid = (req, res) => {
     [product_id],
     (err, result) => {
       if (err) {
-      
         res.send("Error deleting product.");
       } else if (result.affectedRows === 0) {
         res.status(404).send("Product not found.");
