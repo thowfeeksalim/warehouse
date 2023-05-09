@@ -84,7 +84,7 @@ FROM
   });
 };
 
-//!                                CATEGORY
+//!                             CATEGORY
 
 exports.category = (req, res) => {
   const category = req.params.category;
@@ -177,73 +177,108 @@ WHERE brand_name = '${brand}' AND category_name = '${category}'`;
 //!                               /ADD CATEGORY
 
 exports.addcategory = (req, res) => {
-  if (!req.body) {
-    return res.status(400).json({ error: "Missing request body." });
-  }
-
-  //?                    check if product is exit or not
-
-  const { category_name } = req.body;
-
-  db.query(
-    "SELECT * FROM category WHERE category_name = ?",
-    [category_name],
-    (err, rows) => {
-      if (err) {
-        console.log(err);
-        res.send("Error checking for existing category.");
-      } else {
-        //?                   if not exit just added as new category
-
-        db.query(
-          "INSERT INTO category (category_name) VALUES (?)",
-          [category_name],
-          (err, rows) => {
-            if (!err) {
-              res.send("category added successfully.");
-            } else {
-              console.log(err);
-              res.send("Error adding category.");
-            }
-          }
-        );
-      }
+  try {
+    if (!req.body) {
+      return res.status(400).json({ error: "Missing request body." });
     }
-  );
+
+    // check if category name is a string of characters
+    const { category_name } = req.body;
+    if (!/^[A-Za-z]+$/.test(category_name)) {
+      return res
+        .status(400)
+        .json({ error: "Category name should contain only characters." });
+    }
+
+    // check if category already exists
+    db.query(
+      "SELECT * FROM category WHERE category_name = ?",
+      [category_name],
+      (err, rows) => {
+        if (err) {
+          console.log(err);
+          res.send("Error checking for existing category.");
+        } else {
+          if (rows.length > 0) {
+            // category already exists
+            res.status(400).json({ error: "Category already exists." });
+          } else {
+            // add category
+            db.query(
+              "INSERT INTO category (category_name) VALUES (?)",
+              [category_name],
+              (err, rows) => {
+                if (!err) {
+                  res.send("Category added successfully.");
+                } else {
+                  console.log(err);
+                  res.send("Error adding category.");
+                }
+              }
+            );
+          }
+        }
+      }
+    );
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal server error." });
+  }
 };
 
 //!                               /ADD BRAND
 
 exports.addbrand = (req, res) => {
-  if (!req.body) {
-    return res.status(400).json({ error: "Missing request body." });
-  }
-  const { brand_name, category_id } = req.body;
-
-  db.query(
-    "SELECT * FROM brand WHERE brand_name = ? AND  category_id = ?",
-    [brand_name, category_id],
-    (err, rows) => {
-      if (err) {
-        console.log(err);
-        res.send("Error checking for existing brand.");
-      } else {
-        //?                   if not exit just added as new brand
-        db.query(
-          "INSERT INTO brand (brand_name, category_id) VALUES (?,?)",
-          [brand_name, category_id],
-          (err, rows) => {
-            if (!err) {
-              res.send("brand added successfully.");
-            } else {
-              console.log(err);
-              res.send("Error adding brand.");
-            }
-          }
-        );
-      }
+  try {
+    if (!req.body) {
+      return res.status(400).json({ error: "Missing request body." });
     }
-  );
+
+    // check if brand_name and category_id are strings of characters
+    const { brand_name, category_id } = req.body;
+    if (!/^[A-Za-z]+$/.test(brand_name)) {
+      return res
+        .status(400)
+        .json({ error: "Brand name should contain only characters." });
+    }
+    if (isNaN(category_id) || category_id <= 0) {
+      return res
+        .status(400)
+        .json({ error: "Category ID should contain only integers." });
+    }
+    // check if brand already exists
+    db.query(
+      "SELECT * FROM brand WHERE brand_name = ? AND  category_id = ?",
+      [brand_name, category_id],
+      (err, rows) => {
+        if (err) {
+          console.log(err);
+          res.send("Error checking for existing brand.");
+        } else {
+          if (rows.length > 0) {
+            // brand already exists
+            res.status(400).json({ error: "Brand already exists." });
+          } else {
+            // add brand
+            db.query(
+              "INSERT INTO brand (brand_name, category_id) VALUES (?,?)",
+              [brand_name, category_id],
+              (err, rows) => {
+                if (!err) {
+                  res.send("Brand added successfully.");
+                } else {
+                  res.status(400).json({ error: "incorrect category_id" });
+                }
+              }
+            );
+          }
+        }
+      }
+    );
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal server error." });
+  }
 };
 
 //!                               ADD PRODUCT
@@ -306,43 +341,59 @@ exports.addproduct = (req, res) => {
 //!                                 /BUY:ID
 
 exports.buy = (req, res) => {
+  const product_id = req.params.id;
+  const quantity = req.body.quantity;
   try {
-    const product_id = req.params.id;
-    const quantity = req.body.quantity;
-    db.query(
-      "SELECT * FROM products WHERE product_id = ?",
-      [product_id],
-      (err, result) => {
-        if (err) throw err;
-        const product = result[0];
-        if (quantity <= product.product_quantity) {
-          const newQuantity = product.product_quantity - quantity;
-          db.query(
-            "UPDATE products SET product_quantity = ? WHERE product_id = ?",
-            [newQuantity, product_id],
-            (err, result) => {
-              if (err) throw err;
-              res.send(
-                `Successfully bought ${quantity} units of ${product.product_name}.`
-              );
-            }
-          );
-        } else {
-          res
-            .status(400)
-            .send(
-              `Only ${product.product_quantity} units of ${product.product_name} are available.`
-            );
-        }
-      }
-    );
-  } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: "Please enter a valid product",
-      error: error.message,
-    });
+    if (isNaN(quantity) || quantity <= 0)
+      throw new Error("Please enter a valid number");
+  } catch (err) {
+    res.status(400).send(err.message);
+    return;
   }
+  db.query(
+    "SELECT * FROM products WHERE product_id = ?",
+    [product_id],
+    (err, result) => {
+      if (err) {
+        res.status(500).json({
+          status: "error",
+          message: "Something went wrong",
+          error: err.stack,
+        });
+        return;
+      }
+      if (result.length === 0) {
+        res.status(400).send("Please enter valid product_id");
+        return;
+      }
+      const product = result[0];
+      if (quantity <= product.product_quantity) {
+        const newQuantity = product.product_quantity - quantity;
+        db.query(
+          "UPDATE products SET product_quantity = ? WHERE product_id = ?",
+          [newQuantity, product_id],
+          (err, result) => {
+            if (err) {
+              res.status(500).json({
+                status: "error",
+                message: "Something went wrong",
+                error: err.stack,
+              });
+              return;
+            }
+            res.send(
+              `Successfully bought ${quantity} units of ${product.product_name}.`
+            );
+          }
+        );
+      } else {
+        res.status(400).send(
+          // `Only ${product.product_quantity} units of ${product.product_name} are available.`
+          `OUT OF STOCK`
+        );
+      }
+    }
+  );
 };
 
 //!                            EDIT CATEGORY
