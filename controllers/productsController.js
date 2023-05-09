@@ -292,25 +292,24 @@ exports.addproduct = (req, res) => {
     const { product_name, product_quantity, product_brand, product_category } =
       req.body;
 
-    if (
-      typeof product_quantity !== "number" ||
-      !Number.isInteger(product_quantity)
-    ) {
-      res.send("Product quantity must be an integer.");
+
+
+    if (!Number.isInteger(product_quantity) || (product_quantity <= 0)) {
+      throw new Error("Product quantity must be an integer.");
+    }
+  
+    if (!Number.isInteger(product_brand) || (product_brand <= 0)) {
+      throw new Error("Product brand must be an integer.");
+    }
+  
+    if (!Number.isInteger(product_category) || (product_category <= 0)) {
+      throw new Error("Product category must be an integer.");
     }
 
-    // if (typeof product_brand !== "string" ||
-    //   !/^[a-zA-Z ]+$/.test(product_brand))
-    //   {
-    //     res.send("Product brand must be an charactor.");
-    //   }
 
-    if (
-      typeof product_category !== "number" ||
-      !Number.isInteger(product_category)
-    ) {
-      res.send("Product category must be an integer.");
-    }
+
+
+
     db.query(
       "SELECT * FROM products WHERE product_name = ? AND product_brand = ? AND product_category = ?",
       [product_name, product_brand, product_category],
@@ -341,7 +340,7 @@ exports.addproduct = (req, res) => {
                 if (!err) {
                   res.send("Product added successfully.");
                 } else {
-                  console.log(err);
+                  
                   res.send("Error adding product.");
                 }
               }
@@ -432,7 +431,7 @@ exports.editcategory = (req, res) => {
     (error, results, fields) => {
       if (error) {
         console.log(error);
-        res.status(500).send("Internal Server Error");
+        res.status(500).send("Invalid category id or Internal Server Error");
       } else {
         if (results.affectedRows === 0) {
           res.send("Invalid category_id");
@@ -515,13 +514,13 @@ exports.editproduct = (req, res) => {
       product_id,
     ],
     (error, results, fields) => {
-      if (error) throw error;
+      //
 
       db.query(
         "SELECT * FROM products WHERE product_id = ?",
         [product_id],
         (error, results, fields) => {
-          if (error) throw error;
+          //
           res.status(200).send("Product updated successfully");
         }
       );
