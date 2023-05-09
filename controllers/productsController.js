@@ -292,23 +292,17 @@ exports.addproduct = (req, res) => {
     const { product_name, product_quantity, product_brand, product_category } =
       req.body;
 
-
-
-    if (!Number.isInteger(product_quantity) || (product_quantity <= 0)) {
+    if (!Number.isInteger(product_quantity) || product_quantity <= 0) {
       throw new Error("Product quantity must be an integer.");
     }
-  
-    if (!Number.isInteger(product_brand) || (product_brand <= 0)) {
+
+    if (!Number.isInteger(product_brand) || product_brand <= 0) {
       throw new Error("Product brand must be an integer.");
     }
-  
-    if (!Number.isInteger(product_category) || (product_category <= 0)) {
+
+    if (!Number.isInteger(product_category) || product_category <= 0) {
       throw new Error("Product category must be an integer.");
     }
-
-
-
-
 
     db.query(
       "SELECT * FROM products WHERE product_name = ? AND product_brand = ? AND product_category = ?",
@@ -340,7 +334,6 @@ exports.addproduct = (req, res) => {
                 if (!err) {
                   res.send("Product added successfully.");
                 } else {
-                  
                   res.send("Error adding product.");
                 }
               }
