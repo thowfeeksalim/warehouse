@@ -498,8 +498,21 @@ exports.editbrand = (req, res) => {
 
 exports.editproduct = (req, res) => {
   const product_id = req.params.product_id;
-  const { product_name, product_quantity, product_category, product_brand } =
-    req.body;
+  const { product_name, product_quantity, product_category, product_brand } = req.body;
+
+  // Check if product_id is a valid integer
+  if (isNaN(parseInt(product_id))) {
+    res.status(400).send("Invalid product_id");
+    return;
+  }
+
+  // Check if product_quantity, product_category, and product_brand are valid integers and greater than 0
+  if (isNaN(parseInt(product_quantity)) || isNaN(parseInt(product_category)) || isNaN(parseInt(product_brand)) ||
+      parseInt(product_quantity) <= 0 || parseInt(product_category) <= 0 || parseInt(product_brand) <= 0) {
+    res.status(400).send("Invalid product quantity, category, or brand");
+    return;
+  }
+
   db.query(
     `UPDATE products SET 
       product_name = ?,
@@ -523,7 +536,7 @@ exports.editproduct = (req, res) => {
         [product_id],
         (error, results, fields) => {
           if (error) throw error;
-          res.status(200).json(results[0]);
+          res.status(200).send("Product updated successfully");
         }
       );
     }
