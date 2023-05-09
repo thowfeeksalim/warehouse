@@ -182,8 +182,11 @@ WHERE brand_name = '${brand}' AND category_name = '${category}'`;
       console.log(err);
       res.status(500).send("Internal Server Error");
     } else {
-      //console.log(rows);
-      res.json(rows);
+      if (rows.length === 0) {
+        res.send("Sorry,Product not found");
+      } else {
+        res.json(rows);
+      }
     }
   });
 };
@@ -433,6 +436,11 @@ exports.buy = (req, res) => {
 exports.editcategory = (req, res) => {
   const category_id = req.params.category_id;
   const { category_name } = req.body;
+  if (!/^[A-Za-z]+$/.test(category_name)) {
+    return res
+      .status(400)
+      .json({ error: "Category_name  should contain only characters." });
+  }
   db.query(
     `UPDATE category SET 
       category_name = ?,
@@ -440,26 +448,31 @@ exports.editcategory = (req, res) => {
     WHERE category_id = ?`,
     [category_name, category_id],
     (error, results, fields) => {
-      if (error) throw error;
-
-      db.query(
-        "SELECT * FROM category WHERE category_id = ?",
-        [category_id],
-        (error, results, fields) => {
-          if (error) throw error;
-
-          res.status(200).json(results[0]);
+      if (error) {
+        console.log(error);
+        res.status(500).send("Internal Server Error");
+      } else {
+        if (results.affectedRows === 0) {
+          res.send("Invalid category_id");
+        } else {
+          res.send("Category updated successfully");
         }
-      );
+      }
     }
   );
 };
+
 
 //!                            EDIT BRAND
 
 exports.editbrand = (req, res) => {
   const brand_id = req.params.brand_id;
   const { brand_name } = req.body;
+  if (!/^[A-Za-z]+$/.test(brand_name)) {
+    return res
+      .status(400)
+      .json({ error: "brand_name  should contain only characters." });
+  }
   db.query(
     `UPDATE brand SET 
       brand_name = ?,
@@ -467,17 +480,16 @@ exports.editbrand = (req, res) => {
     WHERE brand_id = ?`,
     [brand_name, brand_id],
     (error, results, fields) => {
-      if (error) throw error;
-
-      db.query(
-        "SELECT * FROM brand WHERE brand_id = ?",
-        [brand_id],
-        (error, results, fields) => {
-          if (error) throw error;
-
-          res.status(200).json(results[0]);
+      if (error) {
+        console.log(error);
+        res.status(500).send("Internal Server Error");
+      } else {
+        if (results.affectedRows === 0) {
+          res.send("Invalid brand_id");
+        } else {
+          res.send("brand name updated successfully");
         }
-      );
+      }
     }
   );
 };
