@@ -17,7 +17,16 @@ exports.listcategory = (req, res) => {
 //!                            LIST BRAND
 
 exports.listbrand = (req, res) => {
-  const query = `SELECT * FROM brand`;
+  const query = `
+    SELECT 
+  b.brand_id,
+  b.brand_name, 
+  b.category_id,
+  c.category_name,
+  c.created_date,
+  c.updated_date
+  FROM brand b LEFT JOIN category c ON b.category_id = c.category_id;
+  `;
   db.query(query, (err, rows) => {
     if (err) {
       console.log(err);
@@ -61,17 +70,17 @@ exports.search = (req, res) => {
   const { search } = req.body;
   const query = `
   SELECT 
-  p.product_id, 
-  p.product_quantity, 
-  p.product_name, 
-  b.brand_name, 
-  c.category_name,
-  p.created_date, 
-  p.updated_date
-FROM 
-  products p
-  LEFT JOIN brand b ON p.product_brand = b.brand_id
-  LEFT JOIN category c ON p.product_category = c.category_id
+    p.product_id, 
+    p.product_quantity, 
+    p.product_name, 
+    b.brand_name, 
+    c.category_name,
+    p.created_date, 
+    p.updated_date
+  FROM 
+    products p
+    LEFT JOIN brand b ON p.product_brand = b.brand_id
+    LEFT JOIN category c ON p.product_category = c.category_id
   WHERE product_name LIKE '%${search}%'`;
 
   db.query(query, (err, rows) => {
@@ -79,10 +88,15 @@ FROM
       console.log(err);
       res.status(500).send("Internal Server Error");
     } else {
-      res.json(rows);
+      if (rows.length === 0) {
+        res.send("Sorry,Product not found");
+      } else {
+        res.json(rows);
+      }
     }
   });
 };
+
 
 //!                             CATEGORY
 
@@ -284,58 +298,76 @@ exports.addbrand = (req, res) => {
 //!                               ADD PRODUCT
 
 exports.addproduct = (req, res) => {
-  if (!req.body) {
-    return res.status(400).json({ error: "Missing request body." });
-  }
+  try {
+    if (!req.body) {
+      return res.status(400).json({ error: "Missing request body." });
+    }
 
-  //?                    check if product is exit or not
+    const { product_name, product_quantity, product_brand, product_category } =
+      req.body;
 
-  const { product_name, product_quantity, product_brand, product_category } =
-    req.body;
+    if (
+      typeof product_name !== "string" ||
+      !/^[a-zA-Z ]+$/.test(product_name)
+    ) {
+      throw new Error("Product name must contain only alphabets and spaces.");
+    }
 
-  db.query(
-    "SELECT * FROM products WHERE product_name = ? AND product_brand = ? AND product_category = ?",
-    [product_name, product_brand, product_category],
-    (err, rows) => {
-      if (err) {
-        console.log(err);
-        res.send("Error checking for existing product.");
-      } else {
-        //?                    if exit just update product_quantity
-
-        if (rows.length > 0) {
-          const newQuantity = rows[0].product_quantity + product_quantity;
-          db.query(
-            "UPDATE products SET product_quantity = ? WHERE product_id = ?",
-            [newQuantity, rows[0].product_id],
-            (err, rows) => {
-              if (err) {
-                console.log(err);
-                res.send("Error updating product quantity.");
-              } else {
-                res.send("Product quantity updated successfully.");
-              }
-            }
-          );
+    if (
+      typeof product_quantity !== "number" ||
+      !Number.isInteger(product_quantity) ||
+      typeof product_brand !== "number" ||
+      !Number.isInteger(product_brand) ||
+      typeof product_category !== "number" ||
+      !Number.isInteger(product_category)
+    ) {
+      throw new Error("Product quantity must be an integer.");
+    }
+    db.query(
+      "SELECT * FROM products WHERE product_name = ? AND product_brand = ? AND product_category = ?",
+      [product_name, product_brand, product_category],
+      (err, rows) => {
+        if (err) {
+          console.log(err);
+          res.send("Error checking for existing product.");
         } else {
-          //?                   if not exit just added as new product
-
-          db.query(
-            "INSERT INTO products (product_name, product_quantity, product_brand, product_category) VALUES (?, ?, ?, ?)",
-            [product_name, product_quantity, product_brand, product_category],
-            (err, rows) => {
-              if (!err) {
-                res.send("Product added successfully.");
-              } else {
-                console.log(err);
-                res.send("Error adding product.");
+          if (rows.length > 0) {
+            const newQuantity = rows[0].product_quantity + product_quantity;
+            db.query(
+              "UPDATE products SET product_quantity = ? WHERE product_id = ?",
+              [newQuantity, rows[0].product_id],
+              (err, rows) => {
+                if (err) {
+                  console.log(err);
+                  res.send("Error updating product quantity.");
+                } else {
+                  res.send(
+                    "Product is already exit so, Product quantity updated successfully."
+                  );
+                }
               }
-            }
-          );
+            );
+          } else {
+            db.query(
+              "INSERT INTO products (product_name, product_quantity, product_brand, product_category) VALUES (?, ?, ?, ?)",
+              [product_name, product_quantity, product_brand, product_category],
+              (err, rows) => {
+                if (!err) {
+                  res.send("Product added successfully.");
+                } else {
+                  console.log(err);
+                  res.send("Error adding product.");
+                }
+              }
+            );
+          }
         }
       }
-    }
-  );
+    );
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ error: err.message });
+  }
 };
 
 //!                                 /BUY:ID
