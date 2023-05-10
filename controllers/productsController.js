@@ -188,15 +188,13 @@ WHERE brand_name = '${brand}' AND category_name = '${category}'`;
 exports.addcategory = (req, res) => {
   try {
     if (!req.body) {
-      return res.status(400).send("Missing request body.");
+      throw new Error("Missing request body.");
     }
 
     // check if category name is a string of characters
     const { category_name } = req.body;
     if (!/^[A-Za-z]+$/.test(category_name)) {
-      return res
-        .status(400)
-        .send("Category name should contain only characters.");
+      throw new Error("Category name should contain only characters.");
     }
 
     // check if category already exists
@@ -205,7 +203,7 @@ exports.addcategory = (req, res) => {
       [category_name],
       (err, rows) => {
         if (err) {
-          res.send("Error checking for existing category.");
+          res.status(500).send("Error checking for existing category.");
         } else {
           if (rows.length > 0) {
             // category already exists
@@ -216,10 +214,10 @@ exports.addcategory = (req, res) => {
               "INSERT INTO category (category_name) VALUES (?)",
               [category_name],
               (err, rows) => {
-                if (!err) {
-                  res.send("Category added successfully.");
+                if (err) {
+                  res.status(500).send("Error adding category.");
                 } else {
-                  res.send("Error adding category.");
+                  res.send("Category added successfully.");
                 }
               }
             );
@@ -228,9 +226,12 @@ exports.addcategory = (req, res) => {
       }
     );
   } catch (err) {
-    res.status(500).send("Internal server error.");
+    res.status(500).send(err.message);
   }
 };
+
+
+
 
 //!                               /ADD BRAND
 
