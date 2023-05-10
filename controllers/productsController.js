@@ -191,47 +191,44 @@ exports.addcategory = (req, res) => {
       throw new Error("Missing request body.");
     }
 
-    // check if category name is a string of characters
     const { category_name } = req.body;
+
     if (!/^[A-Za-z]+$/.test(category_name)) {
       throw new Error("Category name should contain only characters.");
     }
-
-    // check if category already exists
-    db.query(
-      "SELECT * FROM category WHERE category_name = ?",
-      [category_name],
-      (err, rows) => {
-        if (err) {
-          res.status(500).send("Error checking for existing category.");
-        } else {
-          if (rows.length > 0) {
-            // category already exists
-            res.status(400).send("Category already exists.");
-          } else {
-            // add category
-            db.query(
-              "INSERT INTO category (category_name) VALUES (?)",
-              [category_name],
-              (err, rows) => {
-                if (err) {
-                  res.status(500).send("Error adding category.");
-                } else {
-                  res.send("Category added successfully.");
-                }
-              }
-            );
-          }
-        }
-      }
-    );
   } catch (err) {
     res.status(500).send(err.message);
   }
+
+  // check if category already exists
+  db.query(
+    "SELECT * FROM category WHERE category_name = ?",
+    [category_name],
+    (err, rows) => {
+      if (err) {
+        res.status(500).send("Error checking for existing category.");
+      } else {
+        if (rows.length > 0) {
+          // category already exists
+          res.status(400).send("Category already exists.");
+        } else {
+          // add category
+          db.query(
+            "INSERT INTO category (category_name) VALUES (?)",
+            [category_name],
+            (err, rows) => {
+              if (err) {
+                res.status(500).send("Error adding category.");
+              } else {
+                res.send("Category added successfully.");
+              }
+            }
+          );
+        }
+      }
+    }
+  );
 };
-
-
-
 
 //!                               /ADD BRAND
 
@@ -344,7 +341,7 @@ exports.addproduct = (req, res) => {
       }
     );
   } catch (err) {
-    res.status(400).send("error");
+    res.status(400).send("Enter valid Datatypes and req.body");
   }
 };
 
