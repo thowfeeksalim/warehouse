@@ -19,10 +19,11 @@ const promise = new Promise ((resolve,reject) => {
     },1000)
 })
 
-async function asyncfunc(){
+function asyncfunc(){
     try{
-        let result = await promise
-        console.log(result)
+        promise.then((resolve)=>{
+            console.log(resolve);
+        })
     }
     catch(error){
         console.log(error)
